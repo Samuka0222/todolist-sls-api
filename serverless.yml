@@ -13,6 +13,8 @@ provider:
   runtime: nodejs20.x
   deploymentMethod: direct
   architecture: arm64
+  environment:
+    COGNITO_CLIENT_ID: !Ref TodoListUserPoolClient
 
 custom:
   Esbuild:
@@ -25,6 +27,54 @@ custom:
   platform: node
   concurrency: 10
 
+resources:
+  Resources:
+    TodoListUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: TodoListUserPool
+        MfaConfiguration: OFF
+        AutoVerifiedAttributes:
+          - email
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: false
+        UsernameAttributes:
+          - email
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+            TemporaryPasswordValidityDays: 2
+        Schema:
+          - Name: given_name
+            Mutable: true
+            Required: true
+            AttributeDataType: String
+          - Name: family_name
+            Mutable: true
+            Required: true
+            AttributeDataType: String
+    TodoListUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: TodoListUserPoolClient
+        UserPoolId: !Ref TodoListUserPool
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        AccessTokenValidity: 1
+        RefreshTokenValidity: 30
+        TokenValidityUnits:
+          AccessToken: days
+          RefreshToken: days
+
 functions:
   hello:
     handler: src/functions/hello.handler
@@ -32,3 +82,15 @@ functions:
       - httpApi:
           method: GET
           path: /hello
+  signUp:
+    handler: src/functions/auth/signUp.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/sign-up
+  accountConfirmation:
+    handler: src/functions/auth/accountConfirmation.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/verify-account
