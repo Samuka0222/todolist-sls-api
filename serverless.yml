@@ -82,15 +82,35 @@ functions:
       - httpApi:
           method: GET
           path: /hello
+  cognitoCustomMessage:
+    handler: src/functions/auth/cognitoCustomMessage.handler
+    events:
+      - cognitoUserPool:
+          pool: TodoListUserPool
+          trigger: CustomMessage
+          existing: true
+          forceDeploy: true
   signUp:
     handler: src/functions/auth/signUp.handler
     events:
       - httpApi:
           method: POST
           path: /auth/sign-up
+  signIn:
+    handler: src/functions/auth/signIn.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/sign-in
   accountConfirmation:
     handler: src/functions/auth/accountConfirmation.handler
     events:
       - httpApi:
           method: POST
           path: /auth/verify-account
+  refreshToken:
+    handler: src/functions/auth/refreshToken.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/refresh-token
