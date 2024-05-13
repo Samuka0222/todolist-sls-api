@@ -1,5 +1,6 @@
 import {
   InitiateAuthCommand,
+  NotAuthorizedException,
   UserNotConfirmedException,
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -38,9 +39,14 @@ export async function handler(event: APIGatewayProxyEventV2) {
       return response(404, { message: 'User not found' });
     }
 
+    if (error instanceof NotAuthorizedException) {
+      return response(401, { Error: 'Invalid Credentials' });
+    }
+
     if (error instanceof UserNotConfirmedException) {
       return response(401, { message: 'User not confirmed' });
     }
+
     return response(500, { message: 'ERROR: Try again later.' });
   }
 }
