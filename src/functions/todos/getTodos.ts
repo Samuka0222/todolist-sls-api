@@ -15,11 +15,16 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
         },
       },
     });
-
     const { Items } = await dynamoClient.send(command);
+
+    if (!Items) {
+      return response(404, { message: 'No to-dos found.' });
+    }
+
     await dynamoClient.send(command);
+
     return response(200, { Items });
   } catch (error) {
-    return response(500, { message: 'Error creating the to-do' });
+    return response(500, { message: 'Error listing the to-dos.' });
   }
 }

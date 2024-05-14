@@ -184,3 +184,19 @@ functions:
           path: /todos
           authorizer:
             name: CognitoAuthorizer
+  updateTodo:
+    handler: src/functions/todos/updateTodo.handler
+    events:
+     - httpApi:
+          method: PUT
+          path: /todos/{todoId}
+          authorizer:
+            name: CognitoAuthorizer
+  deleteTodo:
+    handler: src/functions/todos/deleteTodo.handler
+    events:
+     - httpApi:
+          method: DELETE
+          path: /todos/{todoId}
+          authorizer:
+            name: CognitoAuthorizer
