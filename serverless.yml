@@ -13,8 +13,24 @@ provider:
   runtime: nodejs20.x
   deploymentMethod: direct
   architecture: arm64
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminDeleteUser
+          Resource: !GetAtt TodoListUserPool.Arn
   environment:
     COGNITO_CLIENT_ID: !Ref TodoListUserPoolClient
+    COGNITO_POOL_ID: !Ref TodoListUserPool
+  httpApi:
+    authorizers:
+      CognitoAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: !GetAtt TodoListUserPool.ProviderURL
+        audience:
+          - !Ref TodoListUserPoolClient
 
 custom:
   Esbuild:
@@ -126,3 +142,10 @@ functions:
       - httpApi:
           method: POST
           path: /auth/reset-password
+  deleteAccount:
+    handler: src/functions/accounts/deleteAccount.handler
+    events:
+      - httpApi:
+          method: DELETE
+          path: /accounts/{accountId}
+
