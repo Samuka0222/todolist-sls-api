@@ -19,7 +19,14 @@ provider:
         - Effect: Allow
           Action:
             - cognito-idp:AdminDeleteUser
-          Resource: !GetAtt TodoListUserPool.Arn
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:UpdateItem
+            - dynamodb:Scan
+          Resource:
+            - !GetAtt TodoListUserPool.Arn
+            - !GetAtt TodosTable.Arn
   environment:
     COGNITO_CLIENT_ID: !Ref TodoListUserPoolClient
     COGNITO_POOL_ID: !Ref TodoListUserPool
@@ -90,6 +97,19 @@ resources:
         TokenValidityUnits:
           AccessToken: days
           RefreshToken: days
+    TodosTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TodosTable
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S #S == String / N == Number / B == Binary
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
 
 functions:
   hello:
@@ -148,4 +168,19 @@ functions:
       - httpApi:
           method: DELETE
           path: /accounts/{accountId}
-
+  createTodo:
+    handler: src/functions/todos/createTodo.handler
+    events:
+     - httpApi:
+          method: POST
+          path: /todos
+          authorizer:
+            name: CognitoAuthorizer
+  getTodos:
+    handler: src/functions/todos/getTodos.handler
+    events:
+     - httpApi:
+          method: GET
+          path: /todos
+          authorizer:
+            name: CognitoAuthorizer
