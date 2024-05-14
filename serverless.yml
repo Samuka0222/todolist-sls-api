@@ -19,6 +19,8 @@ provider:
         - Effect: Allow
           Action:
             - cognito-idp:AdminDeleteUser
+            - cognito-idp:AdminUpdateUserAttributes
+            - cognito-idp:AdminGetUser
             - dynamodb:PutItem
             - dynamodb:GetItem
             - dynamodb:DeleteItem
@@ -162,12 +164,22 @@ functions:
       - httpApi:
           method: POST
           path: /auth/reset-password
+  updateAccount:
+    handler: src/functions/accounts/updateAccount.handler
+    events:
+      - httpApi:
+          method: PUT
+          path: /accounts/{accountId}
+          authorizer:
+            name: CognitoAuthorizer
   deleteAccount:
     handler: src/functions/accounts/deleteAccount.handler
     events:
       - httpApi:
           method: DELETE
           path: /accounts/{accountId}
+          authorizer:
+            name: CognitoAuthorizer
   createTodo:
     handler: src/functions/todos/createTodo.handler
     events:
@@ -184,6 +196,14 @@ functions:
           path: /todos
           authorizer:
             name: CognitoAuthorizer
+  getTodoById:
+    handler: src/functions/todos/getTodoById.handler
+    events:
+     - httpApi:
+          method: GET
+          path: /todos/{todoId}
+          authorizer:
+           name: CognitoAuthorizer
   updateTodo:
     handler: src/functions/todos/updateTodo.handler
     events:
